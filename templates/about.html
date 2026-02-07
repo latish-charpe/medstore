@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; padding: 4rem 1rem;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="color: var(--primary); font-size: 2.5rem; margin-bottom: 1rem;">About MedStore</h1>
+        <p style="font-size: 1.2rem; color: var(--gray);">simplify. organize. care.</p>
+    </div>
+
+    <div
+        style="background: var(--white); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+        <h2 style="color: var(--dark); margin-bottom: 1rem;">What is MedStore?</h2>
+        <p style="line-height: 1.8; color: var(--dark); margin-bottom: 1.5rem;">
+            MedStore is a comprehensive <strong>Web-Based Medical Store Management System</strong> designed to bridge
+            the gap between digital convenience and healthcare accessibility. We provide a seamless platform for users
+            to browse medicines, find healthcare products, and receive basic health assistance—all in one place.
+        </p>
+
+        <h2 style="color: var(--dark); margin-bottom: 1rem;">Our Purpose</h2>
+        <p style="line-height: 1.8; color: var(--dark); margin-bottom: 1.5rem;">
+            The goal of MedStore is to make healthcare management efficient and accessible. Whether you are searching
+            for specific medicines, looking for wellness products, or managing store inventory, MedStore offers a
+            user-friendly interface to handle it all with ease.
+        </p>
+
+        <h2 style="color: var(--dark); margin-bottom: 1rem;">Who is it For?</h2>
+        <ul style="list-style: none; padding: 0; margin-bottom: 1.5rem;">
+            <li style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+                <i class="fas fa-user-check" style="color: var(--secondary); margin-top: 5px; margin-right: 15px;"></i>
+                <span><strong>For Customers:</strong> A reliable platform to check medicine availability, browse
+                    categories, and get health tips.</span>
+            </li>
+            <li style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+                <i class="fas fa-shield-alt" style="color: var(--primary); margin-top: 5px; margin-right: 15px;"></i>
+                <span><strong>For Store Managers:</strong> A robust dashboard to manage inventory, update stock, and
+                    track
+                    medicines efficiently.</span>
+            </li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; color: var(--gray); font-size: 0.9rem; margin-top: 3rem;">
+        <p>This application is designed to simulate a real-world pharmacy management experience.</p>
+    </div>
+</div>
+{% endblock %}

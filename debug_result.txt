@@ -1,0 +1,5 @@
+Starting Test...
+Client-calculated Hash for 'medstore2026': 0b7c7dedff3c0bc0de82451ee702e8f81800b68d691f0f7d0889122006cc1e99
+Attempting register with code: medstore2026
+Response Status: 302
+Registration SUCCESS (Redirected to login)

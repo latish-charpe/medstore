@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Store Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>Dashboard</h2>
+        <span>Welcome, {{ current_user.username }}</span>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ stats.total }}</h3>
+            <p>Total Medicines</p>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: var(--secondary);">{{ stats.available }}</h3>
+            <p>In Stock</p>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: var(--danger);">{{ stats.out_of_stock }}</h3>
+            <p>Out of Stock</p>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: #6c757d;">{{ stats.categories }}</h3>
+            <p>Categories</p>
+        </div>
+    </div>
+
+    <div class="dashboard-controls">
+        <!-- Add New Forms -->
+        <!-- Add New Forms (Side by Side) -->
+        <div class="control-panel">
+            <h3 style="margin-bottom: 1.5rem; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px;">Manage Inventory
+            </h3>
+
+            <div class="dashboard-forms-grid">
+                <!-- Left Column: Add Category -->
+                <div class="form-section category-form">
+                    <h4><i class="fas fa-tags"></i> Add Category</h4>
+                    <form action="{{ url_for('add_category') }}" method="POST">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Skin Care" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary full-width">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Add Medicine -->
+                <div class="form-section medicine-form">
+                    <h4><i class="fas fa-pills"></i> Add Medicine</h4>
+                    <form action="{{ url_for('add_medicine') }}" method="POST">
+
+                        <!-- Row 1: Name (Full Width) -->
+                        <div class="form-group">
+                            <label>Medicine Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Paracetamol 500mg"
+                                required>
+                        </div>
+
+                        <!-- Row 2: Category + Type -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select name="category_id" class="form-control" required>
+                                    <option value="" disabled selected>Select Category</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select name="medicine_type" class="form-control" required>
+                                    <option value="" disabled selected>Select Type</option>
+                                    <option value="Tablet">Tablet</option>
+                                    <option value="Syrup">Syrup</option>
+                                    <option value="Capsule">Capsule</option>
+                                    <option value="Cream">Cream</option>
+                                    <option value="Ointment">Ointment</option>
+                                    <option value="Injection">Injection</option>
+                                    <option value="Drops">Drops</option>
+                                    <option value="Powder">Powder</option>
+                                    <option value="Device">Device</option>
+                                    <option value="Spray">Spray</option>
+                                    <option value="Liquid">Liquid</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Unit + Price -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <select name="unit" class="form-control" required>
+                                    <option value="" disabled selected>Select Unit</option>
+                                    <option value="Strip">Strip</option>
+                                    <option value="Bottle">Bottle</option>
+                                    <option value="Tube">Tube</option>
+                                    <option value="Vial">Vial</option>
+                                    <option value="Pack">Pack</option>
+                                    <option value="Box">Box</option>
+                                    <option value="Jar">Jar</option>
+                                    <option value="Sachet">Sachet</option>
+                                    <option value="Unit">Unit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Price (₹)</label>
+                                <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00"
+                                    min="0" required>
+                            </div>
+                        </div>
+
+
+                        <!-- Row 4: Quantity + Expiry -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" name="quantity" class="form-control" placeholder="0" min="0"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="date" name="expiry_date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary full-width" style="margin-top: 10px;">
+                            <i class="fas fa-save"></i> Save Medicine
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medicine List -->
+        <div class="list-panel">
+            <h3>Medicine Inventory</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price (₹)</th>
+                        <th>Qty</th>
+                        <th>Expiry</th>
+                        <th>Expiry Status</th>
+                        <th>Stock Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med in medicines %}
+                    <tr>
+                        <td>{{ med.id }}</td>
+                        <td>{{ med.name }}</td>
+                        <td>{{ med.category.name }}</td>
+                        <td>
+                            <form action="{{ url_for('update_medicine', id=med.id) }}" method="POST"
+                                style="display: flex; gap: 5px; align-items: center;">
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="price" value="{{ med.price }}"
+                                style="width: 80px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" min="0"
+                                required>
+                        </td>
+                        <td>
+                            <input type="number" name="quantity" value="{{ med.quantity }}"
+                                style="width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" min="0"
+                                required>
+                        </td>
+                        <td>{{ med.expiry_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% set status = med.expiry_status %}
+                            {% if status == 'Expired' %}
+                            <span class="badge badge-danger">Expired</span>
+                            {% elif status == 'Near Expiry' %}
+                            <span class="badge badge-warning">Near Expiry</span>
+                            {% else %}
+                            <span class="badge badge-success">Safe</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if med.quantity > 0 %}
+                            <span class="badge badge-info">In Stock</span>
+                            {% else %}
+                            <span class="badge badge-secondary" style="color: grey; background: #eee;">Out Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="submit" title="Update Stock"
+                                style="background:none; border:none; cursor:pointer; color:var(--primary);"><i
+                                    class="fas fa-sync"></i></button>
+                            </form>
+                            <a href="{{ url_for('delete_medicine', id=med.id) }}"
+                                onclick="return confirm('Are you sure?')"
+                                style="color: var(--danger); margin-left: 10px;"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

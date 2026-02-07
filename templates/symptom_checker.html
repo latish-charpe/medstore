@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Health Assistance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: var(--primary); margin-bottom: 1rem;">Health Assistance</h1>
+        <p style="color: var(--gray); margin-bottom: 2rem;">Enter your symptoms or the name of an illness to get basic
+            medicine suggestions.</p>
+
+        <!-- Disclaimer Alert -->
+        <div class="alert alert-warning" style="display: inline-block; text-align: left; max-width: 800px;">
+            <strong><i class="fas fa-exclamation-triangle"></i> Medical Disclaimer:</strong>
+            This feature provides only basic medicine suggestions based on general data.
+            It is <u>not</u> a substitute for professional medical advice, diagnosis, or treatment.
+            Always consult your doctor or pharmacist before taking any medication.
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="form-container" style="max-width: 600px; margin: 0 auto 3rem auto;">
+        <form method="POST" action="{{ url_for('symptom_checker') }}">
+            <div class="form-group">
+                <label for="symptoms">Describe your symptoms or illness:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="symptoms" name="symptoms" class="form-control"
+                        placeholder="Type any symptom (e.g., headache, fever, itching, weak...)"
+                        value="{{ search_query }}" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-stethoscope"></i> Check
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results -->
+    {% if results %}
+    <h3 style="margin-bottom: 1.5rem; text-align: center;">Suggestions Found</h3>
+    <div class="medicines-grid">
+        {% for result in results %}
+        <div class="medicine-card" style="border-top: 4px solid var(--secondary);">
+            <div class="medicine-header">
+                <div class="medicine-name" style="font-size: 1.4rem;">{{ result.disease }}</div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <strong style="color: var(--gray);">Matches Symptoms:</strong>
+                <p style="color: var(--dark);">{{ result.symptoms }}</p>
+            </div>
+
+            <div>
+                <strong style="color: var(--primary);">Suggested Medicines:</strong>
+                <ul style="list-style: none; margin-top: 0.5rem;">
+                    {% for med in result.medicines %}
+                    <li
+                        style="background: #f0f7ff; padding: 5px 10px; margin-bottom: 5px; border-radius: 4px; display: inline-block; margin-right: 5px;">
+                        <i class="fas fa-pills" style="color: var(--primary); margin-right: 5px;"></i> {{ med }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% elif request.method == 'POST' %}
+    <div style="text-align: center; color: var(--gray); margin-top: 2rem;">
+        <i class="fas fa-notes-medical" style="font-size: 3rem; opacity: 0.5;"></i>
+        <p style="margin-top: 1rem;">No matching suggestions found. Please consult a doctor.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

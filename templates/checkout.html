@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; max-width: 800px;">
+    <h1 style="text-align: center; margin-bottom: 2rem;">Secure Checkout</h1>
+
+    <div class="checkout-container">
+        <!-- Order Recap -->
+        <div class="checkout-section">
+            <h3><i class="fas fa-list"></i> Order Items</h3>
+            <ul style="list-style: none; padding: 0;">
+                {% for item in cart_items %}
+                <li
+                    style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0;">
+                    <span>{{ item.quantity }} x {{ item.medicine.name }}</span>
+                    <span>₹{{ item.total }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            <div
+                style="display: flex; justify-content: space-between; margin-top: 1rem; font-weight: 700; font-size: 1.2rem;">
+                <span>Total Payable</span>
+                <span style="color: var(--primary);">₹{{ total_amount }}</span>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="checkout-section">
+            <h3><i class="fas fa-credit-card"></i> Payment Methods</h3>
+            <form action="{{ url_for('place_order') }}" method="POST">
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="COD" checked>
+                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="UPI">
+                        <i class="fas fa-mobile-alt"></i> UPI / QR Code
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="Card">
+                        <i class="fas fa-credit-card"></i> Credit/Debit Card
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; font-size: 1.2rem; margin-top: 2rem;">Place Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+Starting Real Data Verification...
+Registering store_real_01...
+Logging in...
+Login Successful & Dashboard Reached.
+SUCCESS: Found 'Paracetamol 500mg' in Dashboard.
+SUCCESS: Found 'Cetirizine 10mg' in Dashboard.
+SUCCESS: Found 'Metformin 500' in Dashboard.
+SUCCESS: Found 'Amlodipine 5mg' in Dashboard.
+SUCCESS: Found 'Limcee Vitamin C' in Dashboard.
+SUCCESS: Found 'Betnovate C' in Dashboard.
+SUCCESS: Found 'Dabur Chyawanprash' in Dashboard.
+SUCCESS: Found 'Zinc Syrup' in Dashboard.
+SUCCESS: Found 'ORS Powder' in Dashboard.
+SUCCESS: Found 'Digital Thermometer' in Dashboard.
+SUCCESS: Found 'Whey Protein' in Dashboard.
+SUCCESS: Found 'Manforce Pack' in Dashboard.
+ALL TEST MEDICINES FOUND.
+Checking Category: Sexual Wellness...
+SUCCESS: Category 'Sexual Wellness' is populated.
+Checking Category: Diabetes Essentials...
+SUCCESS: Category 'Diabetes Essentials' is populated.

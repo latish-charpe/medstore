@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Placed{% endblock %}
+
+{% block content %}
+<div class="container" style="text-align: center; padding-top: 4rem;">
+    <div
+        style="background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+        <i class="fas fa-check-circle" style="font-size: 5rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
+        <h1 style="color: var(--primary);">Order Placed Successfully!</h1>
+        <p style="font-size: 1.2rem; color: var(--gray);">Thank you for shopping with MedStore.</p>
+
+        <div style="margin: 2rem 0; text-align: left; background: #f8f9fa; padding: 1.5rem; border-radius: 10px;">
+            <p><strong>Order ID:</strong> #{{ order.id }}</p>
+            <p><strong>Date:</strong> {{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+            <p><strong>Total Amount:</strong> <span style="color: var(--primary); font-weight: 700;">₹{{
+                    order.total_amount }}</span></p>
+        </div>
+
+        <a href="{{ url_for('healthcare') }}" class="btn btn-primary">Continue Shopping</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <h1><i class="fas fa-shopping-cart"></i> Your Cart</h1>
+
+    {% if cart_items %}
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Cart Items -->
+        <div style="flex: 2; min-width: 300px;">
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <div class="cart-item-info">
+                    <h3>{{ item.medicine.name }}</h3>
+                    <span class="badge badge-info">{{ item.medicine.medicine_type }}</span>
+                    <p style="color: var(--gray);">Unit: {{ item.medicine.unit }} | Price: ₹{{ item.medicine.price }}
+                    </p>
+                </div>
+                <div class="cart-item-actions">
+                    <span style="font-weight: 600;">Qty: {{ item.quantity }}</span>
+                    <span class="price-tag">₹{{ item.total }}</span>
+                    <a href="{{ url_for('remove_from_cart', id=item.medicine.id) }}" class="btn-icon"><i
+                            class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary -->
+        <div style="flex: 1; min-width: 250px;">
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-row">
+                    <span>Total Amount</span>
+                    <span style="font-size: 1.5rem; color: var(--primary);">₹{{ total_amount }}</span>
+                </div>
+                <a href="{{ url_for('checkout') }}" class="btn btn-primary"
+                    style="width: 100%; margin-top: 1rem;">Proceed to Checkout</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <i class="fas fa-shopping-basket"></i>
+        <h2>Your Cart is Empty</h2>
+        <a href="{{ url_for('healthcare') }}" class="btn btn-primary">Start Shopping</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

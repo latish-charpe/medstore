@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedStore - {% block title %}Home{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-heartbeat"></i> MedStore
+            </a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+
+                <li class="dropdown">
+                    <a href="{{ url_for('medicines') }}" class="dropbtn">Medicines <i
+                            class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content mega-menu">
+                        <div class="mega-menu-grid">
+                            {% for type in medicine_types %}
+                            <a href="{{ url_for('medicines', type=type) }}" class="mega-menu-item">
+                                <i class="fas fa-pills" style="margin-right: 8px; opacity: 0.7;"></i>
+                                {{ type }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </li>
+
+                <li class="dropdown">
+                    <a href="{{ url_for('healthcare') }}" class="dropbtn">Healthcare <i
+                            class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content mega-menu">
+                        <div class="mega-menu-grid">
+                            {% for category in health_categories %}
+                            <a href="{{ url_for('healthcare', category=category) }}" class="mega-menu-item">
+                                <i class="fas fa-prescription-bottle-alt" style="margin-right: 8px; opacity: 0.7;"></i>
+                                {{ category }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </li>
+
+                <li class="dropdown">
+                    <a href="{{ url_for('symptom_checker') }}" class="dropbtn">Health Assistance <i
+                            class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-content"
+                        style="min-width: 200px; padding: 0.5rem 0; border-radius: var(--radius);">
+                        <a href="{{ url_for('symptom_checker') }}"
+                            style="display: block; padding: 0.5rem 1rem; color: var(--primary); font-weight: 500; text-decoration: none;">
+                            What's your symptoms?
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <a href="{{ url_for('cart') }}" style="position: relative;">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                    </a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="dropbtn" style="color: var(--primary); font-weight: 500;">
+                        <i class="fas fa-user-circle"></i> {{ current_user.username }} <i
+                            class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-content dropdown-right" style="padding: 0.5rem 0;">
+                        {% if current_user.role == 'store_manager' %}
+                        <a href="{{ url_for('dashboard') }}" style="color: var(--text); padding: 0.75rem 1rem;">
+                            <i class="fas fa-tachometer-alt" style="width: 20px;"></i> Dashboard
+                        </a>
+                        {% endif %}
+                        <div style="border-top: 1px solid #eee; margin: 0.25rem 0;"></div>
+                        <a href="{{ url_for('logout') }}" style="color: var(--error); padding: 0.75rem 1rem;">
+                            <i class="fas fa-sign-out-alt" style="width: 20px;"></i> Logout
+                        </a>
+                    </div>
+                </li>
+                {% else %}
+                <li style="margin-right: 10px;">
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary"
+                        style="padding: 8px 20px; font-size: 0.9rem;">Register</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary"
+                        style="padding: 8px 20px; font-size: 0.9rem;">Login</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Amazon-Style Footer -->
+    <footer class="site-footer">
+        <div class="back-to-top">
+            <a href="#top">Back to top</a>
+        </div>
+
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Column 1: Get to Know Us -->
+                <div class="footer-col">
+                    <h3>Get to Know MedStore</h3>
+                    <ul>
+                        <li><a href="{{ url_for('about') }}">About MedStore</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press Releases</a></li>
+                        <li><a href="#">MedStore Science</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 2: Connect with Us -->
+                <div class="footer-col">
+                    <h3>Connect with Us</h3>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">WhatsApp Support</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Store Manager -->
+                <div class="footer-col">
+                    <h3>Store Manager</h3>
+                    <ul>
+                        {% if current_user.is_authenticated and current_user.role == 'store_manager' %}
+                        <li class="manager-name">Hi, {{ current_user.username }}</li>
+                        <li><a href="{{ url_for('dashboard') }}">Store Dashboard</a></li>
+                        <!-- Using javascript:void(0) to link to dashboard forms conceptually/visually if specific routes don't exist yet for direct access -->
+                        <li><a href="{{ url_for('dashboard') }}">Manage Medicines</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        {% else %}
+                        <li class="manager-name" style="opacity: 0.7;">Restricted Access</li>
+                        <li><a href="{{ url_for('manager_login') }}">Manager Login</a></li>
+                        <li><a href="{{ url_for('register_manager') }}">Register New Store</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Column 4: Let Us Help You -->
+                <div class="footer-col">
+                    <h3>Let Us Help You</h3>
+                    <ul>
+                        <li><a href="#">Your Account</a></li>
+                        <li><a href="{{ url_for('cart') }}">Your Orders</a></li>
+                        <li><a href="{{ url_for('support') }}">Returns & Replacements</a></li>
+                        <li><a href="{{ url_for('support') }}">MedStore Assistant</a></li>
+                        <li><a href="{{ url_for('support') }}">Help</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-logo">
+                <i class="fas fa-heartbeat"></i> MedStore
+            </div>
+
+            <div class="footer-controls">
+                <button class="footer-btn"><i class="fas fa-globe"></i> English</button>
+                <button class="footer-btn"><i class="fas fa-flag"></i> India</button>
+            </div>
+
+            <div class="footer-copyright">
+                <p>&copy; 2026 MedStore, Inc. or its affiliates. All rights reserved.</p>
+                <ul class="footer-legal">
+                    <li><a href="#">Conditions of Use</a></li>
+                    <li><a href="#">Privacy Notice</a></li>
+                    <li><a href="#">Interest-Based Ads</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+2026-02-07 18:54:31.043181: Login Success for store_1770470670. Role: store_manager
+2026-02-07 18:54:31.044215: Checking starter data for User ID: 4
+2026-02-07 18:54:31.049200: Existing medicines count: 0
+2026-02-07 18:54:31.050178: Seeding starter data for User ID: 4...
+2026-02-07 18:54:31.054686: Error seeding data: name 'timedelta' is not defined
+2026-02-07 18:55:03.286321: Login Success for store_1770470703. Role: store_manager
+2026-02-07 18:55:03.287334: Checking starter data for User ID: 5
+2026-02-07 18:55:03.292921: Existing medicines count: 0
+2026-02-07 18:55:03.293923: Seeding starter data for User ID: 5...
+2026-02-07 18:55:03.308112: Successfully seeded 23 medicines for User 5
+2026-02-07 19:08:34.257066: Login Success for store_cat_1770471514. Role: store_manager
+2026-02-07 19:08:34.258919: Checking starter data for User ID: 6
+2026-02-07 19:08:34.264848: Existing medicines count: 0
+2026-02-07 19:08:34.264848: Seeding starter data for User ID: 6...
+2026-02-07 19:08:34.279842: Successfully seeded 23 medicines for User 6
+2026-02-07 19:08:53.664195: Login Success for store_cat_1770471533. Role: store_manager
+2026-02-07 19:08:53.664195: Checking starter data for User ID: 7
+2026-02-07 19:08:53.671339: Existing medicines count: 0
+2026-02-07 19:08:53.671339: Seeding starter data for User ID: 7...
+2026-02-07 19:08:53.689021: Successfully seeded 23 medicines for User 7
+2026-02-07 19:13:06.781546: Login Success for store_cat_1770471786. Role: store_manager
+2026-02-07 19:13:06.782548: Checking starter data for User ID: 8
+2026-02-07 19:13:06.788557: Existing medicines count: 0
+2026-02-07 19:13:06.789557: Seeding starter data for User ID: 8...
+2026-02-07 19:13:06.804767: Successfully seeded 23 medicines for User 8
+2026-02-07 19:13:27.823259: Login Success for store_cat_1770471807. Role: store_manager
+2026-02-07 19:13:27.824261: Checking starter data for User ID: 9
+2026-02-07 19:13:27.829711: Existing medicines count: 0
+2026-02-07 19:13:27.830712: Seeding starter data for User ID: 9...
+2026-02-07 19:13:27.846580: Successfully seeded 23 medicines for User 9
+2026-02-07 19:22:13.245773: Login Success for store_real_01. Role: store_manager
+2026-02-07 19:22:13.246774: Checking starter data for User ID: 10
+2026-02-07 19:22:13.252281: Existing medicines count: 0
+2026-02-07 19:22:13.253289: Seeding starter data for User ID: 10...
+2026-02-07 19:22:13.371714: Successfully seeded 114 medicines for User 10
+2026-02-07 19:25:22.156499: Login Success for latish. Role: store_manager
+2026-02-07 19:25:22.157485: Checking starter data for User ID: 11
+2026-02-07 19:25:22.161503: Existing medicines count: 0
+2026-02-07 19:25:22.163501: Seeding starter data for User ID: 11...
+2026-02-07 19:25:22.213509: Successfully seeded 114 medicines for User 11

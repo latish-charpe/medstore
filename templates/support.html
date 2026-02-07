@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Support & Queries{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <!-- Header Section -->
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="color: var(--primary); font-weight: 700;">How can we help you?</h1>
+        <p style="color: var(--gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            We are here to assist you. Browse our FAQs or send us a message directly.
+        </p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 3rem;">
+        <!-- Contact Form Section -->
+        <div style="flex: 3; min-width: 300px;">
+            <div
+                style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eef2f6;">
+                <h2 style="margin-bottom: 1.5rem; color: var(--dark);"><i class="fas fa-envelope-open-text"></i> Send us
+                    a query</h2>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('support') }}" method="POST">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Your Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Full Name"
+                                value="{{ current_user.username if current_user.is_authenticated else '' }}" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="name@example.com"
+                                required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="subject" class="form-control" required>
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="Order Status">Order Status</option>
+                            <option value="Product Enquiry">Product Enquiry</option>
+                            <option value="Returns & Refunds">Returns & Refunds</option>
+                            <option value="Account Issue">Account Issue</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" class="form-control" rows="5"
+                            placeholder="Describe your issue or query..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">
+                        <i class="fas fa-paper-plane"></i> Submit Query
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- FAQ & Info Section -->
+        <div style="flex: 2; min-width: 300px;">
+            <!-- Contact Info -->
+            <div
+                style="background: var(--primary); color: white; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);">
+                <h3 style="color: white; margin-bottom: 1rem;">Contact Info</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 1rem; display: flex; align-items: start;">
+                        <i class="fas fa-phone-alt" style="margin-top: 5px; margin-right: 15px; width: 20px;"></i>
+                        <div>
+                            <strong style="display: block;">Phone Support</strong>
+                            <span style="opacity: 0.9;">+1-800-med-store</span>
+                        </div>
+                    </li>
+                    <li style="margin-bottom: 1rem; display: flex; align-items: start;">
+                        <i class="fas fa-envelope" style="margin-top: 5px; margin-right: 15px; width: 20px;"></i>
+                        <div>
+                            <strong style="display: block;">Email Us</strong>
+                            <span style="opacity: 0.9;">support@medstore.com</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: start;">
+                        <i class="fas fa-map-marker-alt" style="margin-top: 5px; margin-right: 15px; width: 20px;"></i>
+                        <div>
+                            <strong style="display: block;">Headquarters</strong>
+                            <span style="opacity: 0.9;">123 Healthcare Ave, MedCity, 56789</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- FAQ Accordion (Simple CSS details/summary) -->
+            <div>
+                <h3 style="margin-bottom: 1rem; color: var(--dark);">Frequently Asked Questions</h3>
+
+                <details
+                    style="background: white; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 10px; padding: 1rem; cursor: pointer;">
+                    <summary style="font-weight: 600; color: var(--primary-dark);">How do I track my order?</summary>
+                    <p style="margin-top: 10px; color: var(--gray); font-size: 0.95rem;">
+                        You can track your order status in the "Your Orders" section under your account profile. We also
+                        send email updates.
+                    </p>
+                </details>
+
+                <details
+                    style="background: white; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 10px; padding: 1rem; cursor: pointer;">
+                    <summary style="font-weight: 600; color: var(--primary-dark);">What is the return policy?</summary>
+                    <p style="margin-top: 10px; color: var(--gray); font-size: 0.95rem;">
+                        We accept returns for damaged or incorrect items within 7 days of delivery. Please contact
+                        support to initiate a return.
+                    </p>
+                </details>
+
+                <details
+                    style="background: white; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 10px; padding: 1rem; cursor: pointer;">
+                    <summary style="font-weight: 600; color: var(--primary-dark);">Do you require a prescription?
+                    </summary>
+                    <p style="margin-top: 10px; color: var(--gray); font-size: 0.95rem;">
+                        For certain Schedule H medicines, a valid prescription is mandatory. You can upload it during
+                        the ordering process.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
