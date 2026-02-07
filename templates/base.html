@@ -19,10 +19,15 @@
             <a href="{{ url_for('index') }}" class="logo">
                 <i class="fas fa-heartbeat"></i> MedStore
             </a>
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
 
-                <li class="dropdown">
+                <li class="dropdown mobile-dropdown">
                     <a href="{{ url_for('medicines') }}" class="dropbtn">Medicines <i
                             class="fas fa-chevron-down"></i></a>
                     <div class="dropdown-content mega-menu">
@@ -37,7 +42,7 @@
                     </div>
                 </li>
 
-                <li class="dropdown">
+                <li class="dropdown mobile-dropdown">
                     <a href="{{ url_for('healthcare') }}" class="dropbtn">Healthcare <i
                             class="fas fa-chevron-down"></i></a>
                     <div class="dropdown-content mega-menu">
@@ -52,7 +57,7 @@
                     </div>
                 </li>
 
-                <li class="dropdown">
+                <li class="dropdown mobile-dropdown">
                     <a href="{{ url_for('symptom_checker') }}" class="dropbtn">Health Assistance <i
                             class="fas fa-chevron-down"></i></a>
                     <div class="dropdown-content"
@@ -69,7 +74,7 @@
                     </a>
                 </li>
                 {% if current_user.is_authenticated %}
-                <li class="dropdown">
+                <li class="dropdown mobile-dropdown">
                     <a href="#" class="dropbtn" style="color: var(--primary); font-weight: 500;">
                         <i class="fas fa-user-circle"></i> {{ current_user.username }} <i
                             class="fas fa-chevron-down"></i>
@@ -87,18 +92,54 @@
                     </div>
                 </li>
                 {% else %}
-                <li style="margin-right: 10px;">
+                <li class="mobile-auth-btn">
                     <a href="{{ url_for('register') }}" class="btn btn-secondary"
-                        style="padding: 8px 20px; font-size: 0.9rem;">Register</a>
+                        style="padding: 8px 20px; font-size: 0.9rem; width: 100%;">Register</a>
                 </li>
-                <li>
+                <li class="mobile-auth-btn">
                     <a href="{{ url_for('login') }}" class="btn btn-primary"
-                        style="padding: 8px 20px; font-size: 0.9rem;">Login</a>
+                        style="padding: 8px 20px; font-size: 0.9rem; width: 100%;">Login</a>
                 </li>
                 {% endif %}
             </ul>
         </div>
     </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            const dropbtns = document.querySelectorAll('.dropbtn');
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function () {
+                    menuToggle.classList.toggle('is-active');
+                    navLinks.classList.toggle('active');
+                    document.body.classList.toggle('no-scroll'); // Prevent body scrolling when menu is open
+                });
+            }
+
+            // Mobile Dropdown Toggle
+            if (window.innerWidth <= 768) {
+                dropbtns.forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const parent = this.parentElement;
+                        parent.classList.toggle('active');
+                    });
+                });
+            }
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!navLinks.contains(event.target) && !menuToggle.contains(event.target) && navLinks.classList.contains('active')) {
+                    menuToggle.classList.remove('is-active');
+                    navLinks.classList.remove('active');
+                    document.body.classList.remove('no-scroll');
+                }
+            });
+        });
+    </script>
 
     <div class="main-content">
         <div class="container">
