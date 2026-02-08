@@ -12,30 +12,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
 
 # Database Configuration
-# Use Postgres if available (Deployment), else fallback to local SQLite
-# Database Configuration
-# Use Postgres if available (Deployment)
-database_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL') or os.environ.get('POSTGRES_PRISMA_URL')
+# Local SQLite (or Ephemeral on Vercel)
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-if database_url:
-    # Fix for SQLAlchemy requiring 'postgresql://' instead of 'postgres://' (common in Heroku/Render)
-    if database_url.startswith("postgres://"):
-        print(f"Fixing database URL: {database_url.split('@')[1]}") # Log safe part of URL
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+# Check if we are possibly in a read-only environment (like Vercel)
+# Vercel file system is read-only except for /tmp
+if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+    # Use /tmp for a temporary DB that might survive a few requests (better than in-memory which resets instantly)
+    # However, this data WILL be lost when the lambda goes cold.
+    print("WARNING: Running in Vercel without DATABASE_URL. Using /tmp/medstore.db (ephemeral).")
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/medstore.db'
 else:
-    # Local SQLite
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    
-    # Check if we are possibly in a read-only environment (like Vercel)
-    # Vercel file system is read-only except for /tmp
-    if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
-        # Use /tmp for a temporary DB that might survive a few requests (better than in-memory which resets instantly)
-        # However, this data WILL be lost when the lambda goes cold.
-        print("WARNING: Running in Vercel without DATABASE_URL. Using /tmp/medstore.db (ephemeral).")
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/medstore.db'
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
