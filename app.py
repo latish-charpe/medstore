@@ -13,6 +13,8 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
 
 # Database Configuration
 # Use Postgres if available (Deployment), else fallback to local SQLite
+# Database Configuration
+# Use Postgres if available (Deployment)
 database_url = os.environ.get('DATABASE_URL')
 
 if database_url:
@@ -23,7 +25,15 @@ if database_url:
 else:
     # Local SQLite
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
+    
+    # Check if we are possibly in a read-only environment (like Vercel)
+    # Vercel file system is read-only except for /tmp
+    if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+        # Fallback to in-memory DB or /tmp if needed, but in-memory is safer for "just working" without persistence errors
+        print("WARNING: Running in cloud environment without DATABASE_URL. Using in-memory SQLite.")
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
