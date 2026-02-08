@@ -15,11 +15,12 @@ app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
 # Use Postgres if available (Deployment), else fallback to local SQLite
 # Database Configuration
 # Use Postgres if available (Deployment)
-database_url = os.environ.get('DATABASE_URL')
+database_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL') or os.environ.get('POSTGRES_PRISMA_URL')
 
 if database_url:
     # Fix for SQLAlchemy requiring 'postgresql://' instead of 'postgres://' (common in Heroku/Render)
     if database_url.startswith("postgres://"):
+        print(f"Fixing database URL: {database_url.split('@')[1]}") # Log safe part of URL
         database_url = database_url.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
