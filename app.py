@@ -29,9 +29,10 @@ else:
     # Check if we are possibly in a read-only environment (like Vercel)
     # Vercel file system is read-only except for /tmp
     if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
-        # Fallback to in-memory DB or /tmp if needed, but in-memory is safer for "just working" without persistence errors
-        print("WARNING: Running in cloud environment without DATABASE_URL. Using in-memory SQLite.")
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        # Use /tmp for a temporary DB that might survive a few requests (better than in-memory which resets instantly)
+        # However, this data WILL be lost when the lambda goes cold.
+        print("WARNING: Running in Vercel without DATABASE_URL. Using /tmp/medstore.db (ephemeral).")
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/medstore.db'
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
 
