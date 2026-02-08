@@ -825,7 +825,64 @@ def support():
         
     return render_template('support.html')
 
+def seed_database():
+    """Seeds the database with initial data if empty."""
+    if User.query.first():
+        return  # Data already exists
+
+    print("Seeding database...")
+    
+    # 1. Create Admin User
+    admin = User(
+        username='admin',
+        password=generate_password_hash('admin123'),
+        role='store_manager'
+    )
+    db.session.add(admin)
+
+    # 2. Create Categories
+    categories = [
+        'Pain Relief', 'Cold & Flu', 'First Aid', 'Skin Care', 
+        'Vitamins', 'Diabetes', 'Heart Health'
+    ]
+    cat_objects = {}
+    for name in categories:
+        cat = Category(name=name)
+        db.session.add(cat)
+        cat_objects[name] = cat
+    
+    db.session.commit() # Commit to get IDs
+
+    # 3. Create Medicines
+    medicines = [
+        {'name': 'Paracetamol 650', 'category': 'Pain Relief', 'price': 30.0, 'stock': 100, 'type': 'Tablet', 'unit': 'Strip', 'expiry': datetime.now() + timedelta(days=365)},
+        {'name': 'Crosin Advance', 'category': 'Pain Relief', 'price': 20.0, 'stock': 50, 'type': 'Tablet', 'unit': 'Strip', 'expiry': datetime.now() + timedelta(days=180)},
+        {'name': 'Benadryl Dr', 'category': 'Cold & Flu', 'price': 110.0, 'stock': 40, 'type': 'Syrup', 'unit': 'Bottle', 'expiry': datetime.now() + timedelta(days=700)},
+        {'name': 'Dettol Antiseptic', 'category': 'First Aid', 'price': 60.0, 'stock': 200, 'type': 'Liquid', 'unit': 'Bottle', 'expiry': datetime.now() + timedelta(days=1000)},
+        {'name': 'Volini Gel', 'category': 'Pain Relief', 'price': 145.0, 'stock': 30, 'type': 'Ointment', 'unit': 'Tube', 'expiry': datetime.now() + timedelta(days=500)},
+    ]
+
+    for med_data in medicines:
+        cat = Category.query.filter_by(name=med_data['category']).first()
+        if cat:
+            new_med = Medicine(
+                name=med_data['name'],
+                category_id=cat.id,
+                price=med_data['price'],
+                quantity=med_data['stock'],
+                medicine_type=med_data['type'],
+                unit=med_data['unit'],
+                expiry_date=med_data['expiry']
+            )
+            db.session.add(new_med)
+            
+    db.session.commit()
+    print("Database seeded successfully!")
+
+# Ensure database is created and seeded on Vercel import
+with app.app_context():
+    db.create_all()
+    seed_database()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
