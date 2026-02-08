@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Medicine, Category, Order, OrderItem
+from models import db, User, Medicine, Category, Order, OrderItem, CustomerQuery
 from flask import session
 import os
 import hashlib
@@ -11,9 +11,20 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
 
-# Absolute Path for SQLite Persistence
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
+# Database Configuration
+# Use Postgres if available (Deployment), else fallback to local SQLite
+database_url = os.environ.get('DATABASE_URL')
+
+if database_url:
+    # Fix for SQLAlchemy requiring 'postgresql://' instead of 'postgres://' (common in Heroku/Render)
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Local SQLite
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

@@ -38,3 +38,7 @@
 2026-02-07 19:25:22.161503: Existing medicines count: 0
 2026-02-07 19:25:22.163501: Seeding starter data for User ID: 11...
 2026-02-07 19:25:22.213509: Successfully seeded 114 medicines for User 11
+2026-02-08 00:02:58.186783: Checking starter data for User ID: 11
+2026-02-08 00:02:58.201793: Existing medicines count: 0
+2026-02-08 00:02:58.205228: Seeding starter data for User ID: 11...
+2026-02-08 00:02:58.292685: Successfully seeded 114 medicines for User 11

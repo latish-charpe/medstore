@@ -29,7 +29,6 @@ class Medicine(db.Model):
     
     # New Fields for Upgrade
     medicine_type = db.Column(db.String(50), default="Tablet") # e.g., Tablet, Syrup
-    medicine_type = db.Column(db.String(50), default="Tablet") # e.g., Tablet, Syrup
     unit = db.Column(db.String(20), default="Strip") # e.g., Strip, Bottle, Tube
     image_url = db.Column(db.String(500), nullable=True) # URL to medicine image
 
