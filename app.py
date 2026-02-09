@@ -489,32 +489,171 @@ def place_order():
     session.pop('cart', None)
     return render_template('order_confirmation.html', order=new_order)
 
-# Symptom Checker (Simplified dictionary for brevity, but functional)
+# --- 🚨 UNIVERSAL Medical Knowledge Base (3-Level System) ---
 HEALTH_KB = {
-    'pain': {'medicines': ['Paracetamol', 'Volini Gel']},
-    'fever': {'medicines': ['Paracetamol 650', 'Crocin']},
-    'cold': {'medicines': ['Vicks Nyquil', 'Otrivin']}
+    'level_1_acute': [
+        {
+            'keywords': ['fever', 'bukhar', 'high temperature', 'dengue', 'malaria', 'typhoid'],
+            'category': 'Fever & Infection Care',
+            'medicines': ['Paracetamol', 'Dolo', 'Ibuprofen', 'ORS'],
+            'message': 'Stay hydrated and rest. These options help manage fever. For dengue/malaria/typhoid, consult a doctor for diagnosis.'
+        },
+        {
+            'keywords': ['cold', 'cough', 'sneezing', 'runny nose', 'sir dard', 'headache', 'sinus', 'tonsils', 'throat pain', 'sore throat'],
+            'category': 'Cold, Cough & Throat',
+            'medicines': ['Cetrizine', 'Vicks', 'Sinarest', 'Benadryl', 'Ascoril', 'Betadine Gargle'],
+            'message': 'These options provide relief for cold, cough, and throat irritation.'
+        },
+        {
+            'keywords': ['acidity', 'gas', 'indigestion', 'bloating', 'stomach burning'],
+            'category': 'Acidity & Gas',
+            'medicines': ['Digene', 'Eno', 'Omez', 'Pantoprazole', 'Omeprazole', 'Gelusil'],
+            'message': 'These options help with acidity, gas, and stomach burning.'
+        },
+        {
+            'keywords': ['constipation', 'pet saf saaf', 'isabgol'],
+            'category': 'Digestion Support',
+            'medicines': ['Isabgol', 'Lactulose'],
+            'message': 'These can help relieve constipation. Increase fluid intake.'
+        },
+        {
+            'keywords': ['diarrhea', 'loose motion'],
+            'category': 'Diarrhea Treatment',
+            'medicines': ['ORS', 'Loperamide'],
+            'message': 'Rehydration is critical. These options help manage symptoms.'
+        },
+        {
+            'keywords': ['vomiting', 'nausea'],
+            'category': 'Vomiting & Nausea',
+            'medicines': ['Ondansetron', 'Omez', 'ORS'],
+            'message': 'These may help manage nausea and prevent dehydration.'
+        },
+        {
+            'keywords': ['body pain', 'muscle pain', 'joint pain', 'pain', 'back pain', 'muscle cramps', 'arthritis'],
+            'category': 'Pain & Muscle Relief',
+            'medicines': ['Combiflam', 'Volini (external)', 'Diclofenac', 'Muscle Relaxant', 'Calcium', 'Magnesium'],
+            'message': 'These provide relief for body, joint, and muscle pain.'
+        },
+        {
+            'keywords': ['skin allergy', 'itching', 'khujli', 'skin irritation', 'rash', 'allergy', 'dandruff', 'acne', 'fungal infection'],
+            'category': 'Skin & Scalp Care',
+            'medicines': ['Calamine', 'Cetrizine', 'Ketoconazole Shampoo', 'Benzoyl Peroxide', 'Clotrimazole'],
+            'message': 'These are common safe options for skin and scalp concerns.'
+        },
+        {
+            'keywords': ['eye infection', 'ear infection'],
+            'category': 'Eye & Ear Care',
+            'medicines': ['Antibiotic Eye Drops', 'Ear Drops'],
+            'message': 'These are basic drops for minor infections. Consult a doctor if pain persists.'
+        }
+    ],
+    'level_2_chronic_sensitive': {
+        'keywords': [
+            'hair fall', 'hair loss', 'stress', 'anxiety', 'depression', 
+            'weight gain', 'weight loss', 'weakness', 'fatigue', 'sexual problems', 
+            'erectile issues', 'libido', 'infertility', 'diabetes', 
+            'bp', 'blood pressure', 'thyroid', 'asthma', 'heart disease', 
+            'cancer', 'cosmetic', 'skin glow', 'fairness', 'lifestyle',
+            'insomnia', 'sleep problem', 'sleep issues', 'sleeplessness',
+            'migraine', 'tension headache', 'panic attacks', 'panic',
+            'memory loss', 'forgetfulness', 'adhd', 'attention deficit',
+            'mental fatigue', 'brain fog', 'mental tiredness', 'mental problem',
+            'nervous problem', 'nervous system', 'anemia', 'low blood',
+            'uti', 'kidney stones', 'liver problem', 'fatty liver', 'tb', 
+            'covid-19', 'vitamin d deficiency', 'vitamin d', 'vitamin b12', 
+            'premature ejaculation', 'hormonal problems'
+        ],
+        'category': 'Supportive Care & Monitoring',
+        'medicines': ['Multivitamins', 'Vitamin B-complex / B12', 'Iron / Calcium', 'Vitamin D3', 'Protein supplements', 'ORS', 'Herbal / Ayurvedic general care'],
+        'message': "These conditions require proper medical diagnosis. Over-the-counter supplements can support general health during treatment, but professional consultation is mandatory for the actual condition."
+    },
+    'heart_safe_mode': {
+        'keywords': [
+            'chest pain', 'chest tightness', 'chest discomfort', 'heart pain', 
+            'heart problem', 'heart attack', 'palpitations', 'irregular heartbeat', 
+            'shortness of breath', 'breathlessness', 'left arm pain', 'jaw pain', 
+            'sweating with chest pain', 'pressure in chest', 'burning in chest', 
+            'cardiac', 'angina', 'high blood pressure', 'hypertension', 
+            'low blood pressure', 'hypotension', 'high cholesterol', 'cholesterol',
+            'stroke', 'blood clot', 'poor blood circulation', 'circulation'
+        ],
+        'message': "We could not find a safe over-the-counter medicine for this condition. Please consult a qualified doctor for accurate diagnosis and treatment.",
+        'supportive_label': " (Supportive Care Only – Not a treatment for heart conditions)"
+    }
 }
+
+def smart_symptom_match(query):
+    query = query.lower().strip()
+    results = []
+    
+    # 0. HEART & CHEST SAFE MODE (Priority)
+    if any(k in query for k in HEALTH_KB['heart_safe_mode']['keywords']):
+        heart_meds = []
+        label = HEALTH_KB['heart_safe_mode']['supportive_label']
+        
+        # Conditional Supportive Meds
+        if 'burning' in query or 'acidity' in query:
+            heart_meds.extend(["Digene Syrup" + label, "Gelusil" + label])
+        if any(k in query for k in ['weakness', 'dehydration', 'low blood pressure', 'hypotension', 'low bp']):
+            heart_meds.append("ORS" + label)
+        
+        # If not indicate severe risk (heart attack, stroke, etc.)
+        severe_keywords = ['attack', 'severe', 'crushing', 'stroke', 'clot', 'hypertension', 'high bp', 'high blood pressure', 'cholesterol', 'clot', 'angina']
+        if not any(k in query for k in severe_keywords):
+             heart_meds.append("Paracetamol (LOW DOSE)" + label)
+             
+        results.append({
+            'disease': "Medical Alert / Heart Care",
+            'category': 'Specialized Safe Mode',
+            'medicines': heart_meds,
+            'message': HEALTH_KB['heart_safe_mode']['message']
+        })
+        return results # Exit early with specialized heart warning
+
+    # 1. LEVEL 1: Check for Acute Symptoms
+    for data in HEALTH_KB['level_1_acute']:
+        if any(k in query for k in data['keywords']):
+            results.append({
+                'disease': "Recommended Care",
+                'category': data['category'],
+                'medicines': data['medicines'],
+                'message': data['message']
+            })
+
+    # 2. LEVEL 2: Check for Chronic / Sensitive / Lifestyle
+    # If Level 2 matches, we provide supportive care (even if it matches Level 1)
+    if any(k in query for k in HEALTH_KB['level_2_chronic_sensitive']['keywords']):
+        # If we already have results (maybe from a Level 1 match), we add Level 2 context
+        # But per requirements, Level 2 message is specific
+        results.append({
+            'disease': "Supportive Care",
+            'category': HEALTH_KB['level_2_chronic_sensitive']['category'],
+            'medicines': HEALTH_KB['level_2_chronic_sensitive']['medicines'],
+            'message': HEALTH_KB['level_2_chronic_sensitive']['message']
+        })
+        return results # Level 2 overrides or supplements Level 1 but typically we show safe supportive care
+
+    # 3. LEVEL 3: Unknown / Complex / Rare Fallback
+    if not results:
+        results.append({
+            'disease': 'Professional Consultation',
+            'category': 'No Match Found',
+            'medicines': [],
+            'message': "We could not find a safe over-the-counter medicine for this condition. Please consult a qualified doctor for accurate diagnosis and treatment."
+        })
+        
+    return results
 
 @app.route('/symptom-checker', methods=['GET', 'POST'])
 def symptom_checker():
     results = []
     search_query = ''
+    
     if request.method == 'POST':
-        search_query = request.form.get('symptoms', '').lower()
-        if 'pain' in search_query:
-            results.append({'disease': 'Pain', 'medicines': HEALTH_KB['pain']['medicines']})
-        elif 'fever' in search_query:
-            results.append({'disease': 'Fever', 'medicines': HEALTH_KB['fever']['medicines']})
-        
-        # Fallback database search
-        db_matches = Medicine.query.filter(Medicine.name.ilike(f'%{search_query}%')).limit(5).all()
-        if db_matches:
-            results.append({
-                'disease': 'Direct Match', 
-                'medicines': [m.name for m in db_matches]
-            })
-            
+        search_query = request.form.get('symptoms', '')
+        if search_query:
+            results = smart_symptom_match(search_query)
+
     return render_template('symptom_checker.html', results=results, search_query=search_query)
 
 @app.route('/support', methods=['GET', 'POST'])
