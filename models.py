@@ -9,6 +9,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), default='customer') # 'store_manager' or 'customer'
+    store_id = db.Column(db.String(50), default='medstore_main', nullable=True) # Future multi-store identifier
     orders = db.relationship('Order', backref='user', lazy=True)
 
 class Category(db.Model):
@@ -51,7 +52,17 @@ class Order(db.Model):
     total_amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default="Completed")
     payment_method = db.Column(db.String(50), nullable=False)
-    items = db.relationship('OrderItem', backref='order', lazy=True)
+    
+    # Address Fields
+    full_name = db.Column(db.String(100), nullable=True) # Start nullable for migration, but enforced in app
+    mobile_number = db.Column(db.String(15), nullable=True)
+    address_line1 = db.Column(db.String(200), nullable=True)
+    area_landmark = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(50), nullable=True)
+    state = db.Column(db.String(50), nullable=True)
+    pincode = db.Column(db.String(10), nullable=True)
+    
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
 
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)

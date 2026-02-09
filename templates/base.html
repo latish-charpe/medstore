@@ -81,13 +81,15 @@
                             class="fas fa-chevron-down"></i>
                     </a>
                     <div class="dropdown-content dropdown-right" style="padding: 0.5rem 0;">
+
                         {% if current_user.role == 'store_manager' %}
                         <a href="{{ url_for('dashboard') }}" style="color: var(--text); padding: 0.75rem 1rem;">
                             <i class="fas fa-tachometer-alt" style="width: 20px;"></i> Dashboard
                         </a>
-                        {% endif %}
                         <div style="border-top: 1px solid #eee; margin: 0.25rem 0;"></div>
+                        {% endif %}
                         <a href="{{ url_for('logout') }}" style="color: var(--error); padding: 0.75rem 1rem;">
+
                             <i class="fas fa-sign-out-alt" style="width: 20px;"></i> Logout
                         </a>
                     </div>

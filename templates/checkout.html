@@ -28,8 +28,57 @@
 
         <!-- Payment -->
         <div class="checkout-section">
-            <h3><i class="fas fa-credit-card"></i> Payment Methods</h3>
+            <h3><i class="fas fa-credit-card"></i> Checkout Details</h3>
             <form action="{{ url_for('place_order') }}" method="POST">
+
+                <!-- Shipping Address Section -->
+                <div style="margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+                    <h4 style="margin-bottom: 1rem; color: #555;"><i class="fas fa-map-marker-alt"></i> Shipping Address
+                    </h4>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="Receiver's Name" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Mobile Number</label>
+                        <input type="tel" name="mobile_number" class="form-control" placeholder="10-digit Mobile Number"
+                            pattern="[0-9]{10}" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Address (House No, Building, Street)</label>
+                        <input type="text" name="address_line1" class="form-control"
+                            placeholder="e.g. Flat 101, Galaxy Apts" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Area / Landmark</label>
+                        <input type="text" name="area_landmark" class="form-control" placeholder="e.g. Near City Park"
+                            required>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 1rem;">
+                            <label>City</label>
+                            <input type="text" name="city" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="flex: 1; margin-bottom: 1rem;">
+                            <label>State</label>
+                            <input type="text" name="state" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Pincode</label>
+                        <input type="text" name="pincode" class="form-control" pattern="[0-9]{6}"
+                            placeholder="6-digit Pincode" required>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 1rem; color: #555;"><i class="fas fa-wallet"></i> Payment Method</h4>
+
                 <div class="payment-options">
                     <label class="payment-option">
                         <input type="radio" name="payment_method" value="COD" checked>
