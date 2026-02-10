@@ -10,15 +10,26 @@
         <h1 style="color: var(--primary);">Order Placed Successfully!</h1>
         <p style="font-size: 1.2rem; color: var(--gray);">Thank you for shopping with MedStore.</p>
 
-        <div style="margin: 2rem 0; text-align: left; background: #f8f9fa; padding: 1.5rem; border-radius: 10px;">
-            <p><strong>Order ID:</strong> #{{ order.id }}</p>
-            <p><strong>Date:</strong> {{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
-            <p><strong>Total Amount:</strong> <span style="color: var(--primary); font-weight: 700;">₹{{
-                    order.total_amount }}</span></p>
+        {% for order in orders %}
+        <div
+            style="margin: 2rem 0; text-align: left; background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border-left: 5px solid var(--primary);">
+            <p style="margin-bottom: 0.5rem;"><strong>Order ID:</strong> #{{ order.id }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Date:</strong> {{ order.order_date.strftime('%Y-%m-%d %H:%M') }}
+            </p>
+            <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-info">{{ order.status
+                    }}</span></p>
+            <p style="margin-bottom: 0.5rem;"><strong>Items:</strong>
+                {% for item in order.items %}
+                {{ item.medicine_name }} (x{{ item.quantity }}){% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p style="margin-bottom: 0.5rem;"><strong>Total Amount:</strong> <span
+                    style="color: var(--primary); font-weight: 700;">₹{{ order.total_amount }}</span></p>
+            <p style="margin-bottom: 0;"><strong>Delivery to:</strong> {{ order.full_name }}, {{ order.city }}</p>
         </div>
+        {% endfor %}
 
-        <a href="{{ url_for('healthcare') }}" class="btn btn-primary">Continue Shopping</a>
+        <a href="{{ url_for('healthcare') }}" class="btn btn-primary" style="margin-top: 1rem;">Continue Shopping</a>
     </div>
 </div>
 {% endblock %}

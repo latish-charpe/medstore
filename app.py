@@ -32,6 +32,43 @@ login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 
+# --- Template Filters ---
+@app.template_filter('parse_formulation')
+def parse_formulation_filter(text):
+    if not text:
+        return {}
+    
+    sections = {'ingredients': [], 'excipients': [], 'use': []}
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    current_key = None
+    
+    for line in lines:
+        l_line = line.lower()
+        if 'active ingredient' in l_line:
+            current_key = 'ingredients'
+            if ':' in line: 
+                val = line.split(':', 1)[1].strip()
+                if val: sections['ingredients'].append(val)
+        elif 'excipient' in l_line:
+            current_key = 'excipients'
+            if ':' in line: 
+                val = line.split(':', 1)[1].strip()
+                if val: sections['excipients'].append(val)
+        elif 'use:' in l_line or 'uses' in l_line:
+            current_key = 'use'
+            if ':' in line: 
+                val = line.split(':', 1)[1].strip()
+                if val: sections['use'].append(val)
+        elif 'dosage form' in l_line:
+            current_key = 'ignore'
+        elif current_key and current_key != 'ignore':
+            sections[current_key].append(line)
+        elif not current_key:
+            # Fallback for medicines with no headers - treat first lines as ingredients
+            sections['ingredients'].append(line)
+            
+    return sections
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -246,6 +283,9 @@ def dashboard():
     medicines = Medicine.query.filter_by(user_id=current_user.id).all()
     categories = Category.query.all()
     
+    # Orders for this manager
+    orders = Order.query.filter_by(store_manager_id=current_user.id).order_by(Order.order_date.desc()).all()
+    
     total_medicines = len(medicines)
     available_medicines = len([m for m in medicines if m.availability and m.quantity > 0])
     out_of_stock = len([m for m in medicines if m.quantity == 0])
@@ -253,11 +293,15 @@ def dashboard():
     return render_template('dashboard.html', 
                          medicines=medicines, 
                          categories=categories,
+                         orders=orders,
                          stats={
                              'total': total_medicines,
                              'available': available_medicines,
                              'out_of_stock': out_of_stock,
-                             'categories': len(categories)
+                             'categories': len(categories),
+                             'total_orders': len(orders),
+                             'pending_orders': len([o for o in orders if o.status in ['Placed', 'Packed']]),
+                             'delivered_orders': len([o for o in orders if o.status == 'Delivered'])
                          })
 
 @app.route('/logout')
@@ -266,6 +310,25 @@ def logout():
     session.clear()
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/update_order_status/<int:order_id>', methods=['POST'])
+@login_required
+def update_order_status(order_id):
+    if current_user.role != 'store_manager':
+        return redirect(url_for('index'))
+    
+    order = Order.query.get_or_404(order_id)
+    if order.store_manager_id != current_user.id:
+        flash('Unauthorized.', 'error')
+        return redirect(url_for('dashboard'))
+        
+    new_status = request.form.get('status')
+    if new_status in ['Placed', 'Packed', 'Delivered', 'Cancelled']:
+        order.status = new_status
+        db.session.commit()
+        flash(f'Order #{order.id} status updated to {new_status}.', 'success')
+    
+    return redirect(url_for('dashboard'))
 
 @app.route('/medicines')
 def medicines():
@@ -276,7 +339,12 @@ def medicines():
     query = Medicine.query
     
     if search_query:
-        query = query.filter(Medicine.name.ilike(f'%{search_query}%'))
+        query = query.filter(
+            db.or_(
+                Medicine.name.ilike(f'%{search_query}%'),
+                Medicine.composition.ilike(f'%{search_query}%')
+            )
+        )
     
     display_title = "Available Medicines"
     if category_filter:
@@ -313,6 +381,7 @@ def add_medicine():
             name=name, category_id=category_id, price=price, 
             quantity=quantity, expiry_date=expiry_date,
             medicine_type=medicine_type, unit=unit, image_url=image_url,
+            composition=request.form.get('composition'),
             user_id=current_user.id
         )
         db.session.add(new_med)
@@ -350,6 +419,9 @@ def update_medicine(id):
     
     if request.form.get('image_url'):
         med.image_url = request.form.get('image_url')
+        
+    if request.form.get('composition'):
+        med.composition = request.form.get('composition')
         
     db.session.commit()
     flash('Medicine updated', 'success')
@@ -425,9 +497,6 @@ def checkout():
 @app.route('/place_order', methods=['POST'])
 @login_required
 def place_order():
-    if not current_user.is_authenticated:
-         return redirect(url_for('login'))
-
     cart_session = session.get('cart', {})
     if not cart_session:
         return redirect(url_for('index'))
@@ -444,50 +513,61 @@ def place_order():
     if not all([full_name, mobile_number, address_line1, area_landmark, city, state, pincode]):
         flash('Please provide a complete delivery address.', 'error')
         return redirect(url_for('checkout'))
-        
-    total_amount = 0
-    items_to_save = []
+
+    # Group items by Store Manager
+    manager_orders = {} # store_manager_id -> {items: [], total: 0}
     
     for med_id, qty in cart_session.items():
         med = Medicine.query.get(int(med_id))
         if med:
-            total_amount += med.price * qty
+            mgr_id = med.user_id # The store manager who owns this medicine
+            if mgr_id not in manager_orders:
+                manager_orders[mgr_id] = {'items': [], 'total': 0}
+            
+            manager_orders[mgr_id]['total'] += med.price * qty
             if med.quantity >= qty:
                 med.quantity -= qty
             
-            items_to_save.append({
+            manager_orders[mgr_id]['items'].append({
                 'med_id': med.id, 'name': med.name, 'qty': qty, 'price': med.price
             })
 
-    new_order = Order(
-        user_id=current_user.id,
-        total_amount=total_amount,
-        payment_method=request.form.get('payment_method'),
-        full_name=full_name,
-        mobile_number=mobile_number,
-        address_line1=address_line1,
-        area_landmark=area_landmark,
-        city=city,
-        state=state,
-        pincode=pincode
-    )
-    db.session.add(new_order)
-    db.session.commit()
-    
-    for item in items_to_save:
-        order_item = OrderItem(
-            order_id=new_order.id,
-            medicine_id=item['med_id'],
-            medicine_name=item['name'],
-            quantity=item['qty'],
-            price=item['price']
+    payment_method = request.form.get('payment_method')
+    created_orders = []
+
+    for mgr_id, data in manager_orders.items():
+        new_order = Order(
+            user_id=current_user.id,
+            store_manager_id=mgr_id,
+            total_amount=data['total'],
+            payment_method=payment_method,
+            full_name=full_name,
+            mobile_number=mobile_number,
+            address_line1=address_line1,
+            area_landmark=area_landmark,
+            city=city,
+            state=state,
+            pincode=pincode
         )
-        db.session.add(order_item)
-    
+        db.session.add(new_order)
+        db.session.flush() # Populate ID
+
+        for item in data['items']:
+            order_item = OrderItem(
+                order_id=new_order.id,
+                medicine_id=item['med_id'],
+                medicine_name=item['name'],
+                quantity=item['qty'],
+                price=item['price']
+            )
+            db.session.add(order_item)
+        
+        created_orders.append(new_order)
+
     db.session.commit()
-    
     session.pop('cart', None)
-    return render_template('order_confirmation.html', order=new_order)
+    
+    return render_template('order_confirmation.html', orders=created_orders)
 
 # --- 🚨 UNIVERSAL Medical Knowledge Base (3-Level System) ---
 HEALTH_KB = {
@@ -674,9 +754,18 @@ def support():
 
 @app.route('/healthcare')
 def healthcare():
+    search_query = request.args.get('search', '').lower()
     category_filter = request.args.get('category', 'Must Haves')
     
     query = Medicine.query.join(Category).filter(Category.name == category_filter)
+    
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Medicine.name.ilike(f'%{search_query}%'),
+                Medicine.composition.ilike(f'%{search_query}%')
+            )
+        )
         
     if current_user.is_authenticated and current_user.role == 'store_manager':
         query = query.filter(Medicine.user_id == current_user.id)

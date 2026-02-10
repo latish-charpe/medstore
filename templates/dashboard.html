@@ -10,7 +10,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stats-grid">
+    <div class="stats-grid" style="margin-bottom: 2rem;">
         <div class="stat-card">
             <h3>{{ stats.total }}</h3>
             <p>Total Medicines</p>
@@ -23,9 +23,21 @@
             <h3 style="color: var(--danger);">{{ stats.out_of_stock }}</h3>
             <p>Out of Stock</p>
         </div>
-        <div class="stat-card">
-            <h3 style="color: #6c757d;">{{ stats.categories }}</h3>
-            <p>Categories</p>
+        <div class="stat-card" style="border-left: 4px solid var(--primary);">
+            <h3 style="color: var(--primary);">{{ stats.total_orders }}</h3>
+            <p>Orders Received</p>
+        </div>
+    </div>
+
+    <!-- Order Summary Cards -->
+    <div class="stats-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="stat-card" style="background: #eef2ff;">
+            <h3 style="color: #4f46e5;">{{ stats.pending_orders }}</h3>
+            <p>Pending Orders</p>
+        </div>
+        <div class="stat-card" style="background: #ecfdf5;">
+            <h3 style="color: #10b981;">{{ stats.delivered_orders }}</h3>
+            <p>Delivered Orders</p>
         </div>
     </div>
 
@@ -131,6 +143,13 @@
                             </div>
                         </div>
 
+                        <div class="form-group">
+                            <label>Chemical Formulation (Real Data Only)</label>
+                            <textarea name="composition" class="form-control" placeholder="e.g. Paracetamol IP 650 mg"
+                                style="height: 60px;"></textarea>
+                            <small style="color: var(--gray);">Leave empty if verified info is not available.</small>
+                        </div>
+
                         <button type="submit" class="btn btn-primary full-width" style="margin-top: 10px;">
                             <i class="fas fa-save"></i> Save Medicine
                         </button>
@@ -151,6 +170,7 @@
                         <th style="width: 10%;">Price (₹)</th>
                         <th style="width: 8%;">Qty</th>
                         <th style="width: 12%;">Expiry</th>
+                        <th style="width: 10%;">Formulation</th>
                         <th style="width: 10%;">Status</th>
                         <th style="width: 10%;">Stock</th>
                         <th style="width: 10%;">Actions</th>
@@ -174,6 +194,10 @@
                                     min="0" required>
                             </td>
                             <td>{{ med.expiry_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <textarea name="composition" class="compact-input"
+                                    style="height: 50px; font-size: 0.8rem; width: 120px;">{{ med.composition or '' }}</textarea>
+                            </td>
                             <td>
                                 {% set status = med.expiry_status %}
                                 {% if status == 'Expired' %}
@@ -209,6 +233,70 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Customer Orders Section -->
+        <div class="list-panel" style="margin-top: 3rem;">
+            <h3 style="margin-bottom: 1.5rem; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px;">
+                <i class="fas fa-shopping-bag"></i> Customer Orders
+            </h3>
+
+            {% if orders %}
+            <table class="table inventory-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">ID</th>
+                        <th style="width: 15%;">Customer</th>
+                        <th style="width: 20%;">Medicine(s)</th>
+                        <th style="width: 10%;">Total (₹)</th>
+                        <th style="width: 25%;">Address</th>
+                        <th style="width: 10%;">Date</th>
+                        <th style="width: 12%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>{{ order.full_name }}<br><small style="color: var(--gray);">{{ order.mobile_number
+                                }}</small></td>
+                        <td class="text-left">
+                            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem;">
+                                {% for item in order.items %}
+                                <li>{{ item.medicine_name }} (x{{ item.quantity }})</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td><span style="font-weight: 700; color: var(--primary);">₹{{ order.total_amount }}</span></td>
+                        <td class="text-left" style="font-size: 0.85rem;">
+                            {{ order.address_line1 }}, {{ order.area_landmark }},<br>
+                            {{ order.city }}, {{ order.state }} - {{ order.pincode }}
+                        </td>
+                        <td>{{ order.order_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="POST">
+                                <select name="status" class="compact-input" onchange="this.form.submit()"
+                                    style="width: 100%;">
+                                    <option value="Placed" {% if order.status=='Placed' %}selected{% endif %}>Placed
+                                    </option>
+                                    <option value="Packed" {% if order.status=='Packed' %}selected{% endif %}>Packed
+                                    </option>
+                                    <option value="Delivered" {% if order.status=='Delivered' %}selected{% endif %}>
+                                        Delivered</option>
+                                    <option value="Cancelled" {% if order.status=='Cancelled' %}selected{% endif %}>
+                                        Cancelled</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 10px;">
+                <i class="fas fa-box-open" style="font-size: 3rem; color: #dee2e6; margin-bottom: 1rem;"></i>
+                <p>No customer orders found for your store yet.</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}

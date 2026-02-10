@@ -10,7 +10,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), default='customer') # 'store_manager' or 'customer'
     store_id = db.Column(db.String(50), default='medstore_main', nullable=True) # Future multi-store identifier
-    orders = db.relationship('Order', backref='user', lazy=True)
+    
+    # Relationships
+    orders = db.relationship('Order', foreign_keys='Order.user_id', backref='buyer', lazy=True)
+    managed_orders = db.relationship('Order', foreign_keys='Order.store_manager_id', backref='manager', lazy=True)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,6 +35,7 @@ class Medicine(db.Model):
     medicine_type = db.Column(db.String(50), default="Tablet") # e.g., Tablet, Syrup
     unit = db.Column(db.String(20), default="Strip") # e.g., Strip, Bottle, Tube
     image_url = db.Column(db.String(500), nullable=True) # URL to medicine image
+    composition = db.Column(db.Text, nullable=True) # Actual active ingredients + strength
 
     @property
     def expiry_status(self):
@@ -50,8 +54,9 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Nullable for guest checkout if needed
     order_date = db.Column(db.DateTime, default=datetime.utcnow)
     total_amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), default="Completed")
+    status = db.Column(db.String(20), default="Placed") # Placed, Packed, Delivered, Cancelled
     payment_method = db.Column(db.String(50), nullable=False)
+    store_manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # The manager who owns the medicines in this order
     
     # Address Fields
     full_name = db.Column(db.String(100), nullable=True) # Start nullable for migration, but enforced in app

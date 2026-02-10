@@ -59,6 +59,9 @@
                             <span class="badge badge-danger">Expired</span>
                             {% elif med.expiry_status == 'Near Expiry' %}
                             <span class="badge badge-warning">Near Expiry</span>
+                            {% else %}
+                            <span class="badge badge-success"
+                                style="background-color: #e8f5e9; color: #2e7d32;">Safe</span>
                             {% endif %}
                         </div>
                     </div>
@@ -73,6 +76,44 @@
                 <div style="display: flex; justify-content: space-between; align-items: baseline;">
                     <div class="medicine-price">₹{{ med.price }}</div>
                     <span style="font-size: 0.85rem; color: var(--gray);">{{ med.unit }}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #757575; margin-top: 4px;">
+                    <i class="far fa-calendar-alt"></i> Expiry: {{ med.expiry_date.strftime('%Y-%m-%d') }}
+                </div>
+                <div
+                    style="font-size: 0.82rem; color: #444; margin-top: 10px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 8px;">
+                    <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 5px;">Formulation:</div>
+                    {% if med.composition %}
+                    {% set f = med.composition|parse_formulation %}
+                    {% if f.ingredients %}
+                    <div style="margin-bottom: 6px;">
+                        <div style="font-weight: 600;">• Active Ingredient(s):</div>
+                        {% for item in f.ingredients %}
+                        <div style="padding-left: 12px; color: #555;">- {{ item }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if f.excipients %}
+                    <div style="margin-bottom: 6px;">
+                        <div style="font-weight: 600;">• Excipients:</div>
+                        {% for item in f.excipients %}
+                        <div style="padding-left: 12px; color: #555;">- {{ item }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if f.use %}
+                    <div>
+                        <div style="font-weight: 600;">• Use:</div>
+                        {% for item in f.use %}
+                        <div style="padding-left: 12px; color: #555;">- {{ item }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <span style="color: var(--gray); font-style: italic;">Formulation information not available</span>
+                    {% endif %}
                 </div>
                 {% if med.quantity <= 10 and med.quantity> 0 %}
                     <div style="font-size: 0.8rem; color: #e03131; margin-top: 5px;">
@@ -108,9 +149,10 @@
         {% endfor %}
     </div>
     {% else %}
-    <div style="text-align: center; margin-top: 3rem; color: var(--gray);">
-        <i class="fas fa-box-open" style="font-size: 4rem; opacity: 0.5;"></i>
-        <p style="margin-top: 1rem;">No medicines added in this category yet.</p>
+    <div
+        style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 10px; border: 1px dashed #dee2e6;">
+        <i class="fas fa-pills" style="font-size: 3rem; color: #dee2e6; margin-bottom: 1rem;"></i>
+        <p>No relevant medicine found. Please consult a doctor.</p>
     </div>
     {% endif %}
 </div>
