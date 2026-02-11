@@ -12,22 +12,21 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
 
 # Database Configuration
-# Local SQLite (or Ephemeral on Vercel)
-basedir = os.path.abspath(os.path.dirname(__file__))
+import os
 
-# Check if we are possibly in a read-only environment (like Vercel)
-# Vercel file system is read-only except for /tmp
-if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
-    # Use /tmp for a temporary DB that might survive a few requests (better than in-memory which resets instantly)
-    # However, this data WILL be lost when the lambda goes cold.
-    print("WARNING: Running in Vercel. Using /tmp/medstore.db (ephemeral).")
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/medstore.db'
+database_url = os.getenv("DATABASE_URL")
+
+if database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'medstore.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///medstore.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
