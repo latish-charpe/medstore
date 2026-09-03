@@ -38,15 +38,15 @@
     <!-- Results -->
     {% if results %}
     <h3 style="margin-bottom: 1.5rem; text-align: center;">Health-Based Suggestions</h3>
-    <div class="medicines-grid">
+    <div class="health-results-grid">
         {% for result in results %}
-        <div class="medicine-card" style="border-top: 4px solid var(--secondary);">
+        <div class="medicine-card health-result-card" style="border-top: 4px solid var(--secondary);">
             <div class="medicine-header">
                 <div class="medicine-name" style="font-size: 1.4rem;">{{ result.disease }}</div>
             </div>
 
             <div style="margin-bottom: 1rem;">
-                <strong style="color: var(--gray);">Based on your symptoms:</strong>
+                <strong style="color: var(--gray);">Summary</strong>
                 <p style="color: var(--dark);">{{ result.message }}</p>
             </div>
 
@@ -61,6 +61,19 @@
                     </li>
                     {% endfor %}
                 </ul>
+            </div>
+            {% endif %}
+
+            {% if result.urgent_care %}
+            <div class="alert alert-danger" style="margin-top: 1rem; text-align: left;">
+                <strong><i class="fas fa-triangle-exclamation"></i> Urgent care</strong>
+                <p>{{ result.urgent_care }}</p>
+            </div>
+            {% endif %}
+            {% if result.disclaimer %}
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #e9ecef; color: var(--gray);">
+                <strong>Safety note</strong>
+                <p>{{ result.disclaimer }}</p>
             </div>
             {% endif %}
         </div>

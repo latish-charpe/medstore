@@ -1,5 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+.health-chat {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    padding: 1.5rem;
+    border: 1px solid #d8e5e1;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f1fbf8 0%, #fff 68%);
+    box-shadow: 0 8px 24px rgba(20, 83, 72, 0.08);
+}
+
+.health-results-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 0 auto;
+}
+
+.health-result-card {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.health-result-card .medicine-header,
+.health-result-card > div {
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .health-results-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.health-chat-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.health-chat-header h3 { margin: 0.35rem 0; color: #145348; }
+.health-chat-header p { margin: 0; color: var(--gray); }
+.health-chat-kicker { color: #16836e; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.health-chat-kicker i { font-size: 0.45rem; vertical-align: middle; }
+.health-chat-icon { color: #16836e; font-size: 2rem; }
+.health-chat-messages { display: flex; flex-direction: column; gap: 0.65rem; max-height: 240px; overflow-y: auto; margin: 1.25rem 0; padding: 0.25rem; }
+.health-chat-message { max-width: 82%; padding: 0.7rem 0.9rem; border-radius: 8px; line-height: 1.45; white-space: pre-wrap; }
+.health-chat-message.assistant { align-self: flex-start; background: #fff; border: 1px solid #d8e5e1; }
+.health-chat-message.user { align-self: flex-end; color: #fff; background: #16836e; }
+.health-chat-form { display: flex; gap: 0.65rem; }
+.health-chat-form input { flex: 1; min-width: 0; }
+.health-chat-disclaimer { display: block; margin-top: 0.75rem; color: var(--gray); }
+.health-chat-disclaimer i { color: #16836e; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
 :root {
     /* Modern Palette */
     --primary: #0ca678;

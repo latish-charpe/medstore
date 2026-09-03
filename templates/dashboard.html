@@ -41,6 +41,26 @@
         </div>
     </div>
 
+    <section class="health-chat" aria-labelledby="health-chat-title">
+        <div class="health-chat-header">
+            <div>
+                <span class="health-chat-kicker"><i class="fas fa-circle"></i> Live health assistant</span>
+                <h3 id="health-chat-title">Ask about symptoms</h3>
+                <p>Get cautious OTC suggestions from your configured Gemini assistant.</p>
+            </div>
+            <i class="fas fa-comment-medical health-chat-icon" aria-hidden="true"></i>
+        </div>
+        <div id="health-chat-messages" class="health-chat-messages" aria-live="polite">
+            <div class="health-chat-message assistant">Tell me what symptoms you are experiencing. I can offer general information, not a diagnosis.</div>
+        </div>
+        <form id="health-chat-form" class="health-chat-form">
+            <label class="sr-only" for="health-chat-input">Describe your symptoms</label>
+            <input id="health-chat-input" type="text" maxlength="1000" placeholder="e.g. fever and body pain" autocomplete="off" required>
+            <button type="submit" class="btn btn-primary" title="Send message"><i class="fas fa-paper-plane"></i><span>Send</span></button>
+        </form>
+        <small class="health-chat-disclaimer"><i class="fas fa-shield-alt"></i> For emergencies or severe symptoms, contact local emergency services.</small>
+    </section>
+
     <div class="dashboard-controls">
         <!-- Add New Forms -->
         <!-- Add New Forms (Side by Side) -->
@@ -299,4 +319,44 @@
             {% endif %}
         </div>
     </div>
+    {% endblock %}
+
+    {% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('health-chat-form');
+            const input = document.getElementById('health-chat-input');
+            const messages = document.getElementById('health-chat-messages');
+
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                const message = input.value.trim();
+                if (!message) return;
+                const userMessage = document.createElement('div');
+                userMessage.className = 'health-chat-message user';
+                userMessage.textContent = message;
+                messages.appendChild(userMessage);
+                input.value = '';
+
+                const pending = document.createElement('div');
+                pending.className = 'health-chat-message assistant';
+                pending.textContent = 'Checking your symptoms...';
+                messages.appendChild(pending);
+                messages.scrollTop = messages.scrollHeight;
+
+                try {
+                    const response = await fetch('{{ url_for("health_chat") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+                    const data = await response.json();
+                    pending.textContent = response.ok ? data.answer : (data.error || 'The assistant is unavailable right now.');
+                } catch (error) {
+                    pending.textContent = 'The assistant is unavailable right now. Please try the Health Assistance page.';
+                }
+                messages.scrollTop = messages.scrollHeight;
+            });
+        });
+    </script>
     {% endblock %}

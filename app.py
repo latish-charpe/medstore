@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Medicine, Category, Order, OrderItem, CustomerQuery
+from sqlalchemy import inspect, text
 import os
 import hashlib
 import time
 from datetime import datetime, timedelta
 from medicines_data import REAL_MEDICINES_DB
+from health_assistant import HealthAssistant
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
@@ -25,8 +27,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+def migrate_schema():
+    """Apply small additive migrations needed by existing installations."""
+    inspector = inspect(db.engine)
+    user_columns = {column['name'] for column in inspector.get_columns('user')}
+    if 'store_id' not in user_columns:
+        db.session.execute(text(
+            "ALTER TABLE user ADD COLUMN store_id VARCHAR(50) DEFAULT 'medstore_main'"
+        ))
+        db.session.commit()
+
 with app.app_context():
     db.create_all()
+    migrate_schema()
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
@@ -154,6 +167,7 @@ def seed_starter_data(user_id):
 
 with app.app_context():
     db.create_all()
+    migrate_schema()
     seed_database()
 
 # --- Routes ---
@@ -723,6 +737,19 @@ def smart_symptom_match(query):
         
     return results
 
+def local_health_answer(query):
+    matches = smart_symptom_match(query)
+    result = matches[0] if matches else {}
+    return {
+        'summary': result.get('message', 'Please consult a qualified doctor or pharmacist.'),
+        'medicines': result.get('medicines', []),
+        'urgent_care': '',
+        'disclaimer': 'This is general information, not a diagnosis. Consult a doctor or pharmacist.'
+    }
+
+
+health_assistant = HealthAssistant(local_health_answer)
+
 @app.route('/symptom-checker', methods=['GET', 'POST'])
 def symptom_checker():
     results = []
@@ -731,9 +758,31 @@ def symptom_checker():
     if request.method == 'POST':
         search_query = request.form.get('symptoms', '')
         if search_query:
-            results = smart_symptom_match(search_query)
+            answer, source = health_assistant.answer_structured_with_source(search_query)
+            results = [{
+                'disease': 'Gemini Health Assistant' if source == 'gemini' else 'Local Health Assistant',
+                'category': 'AI-assisted general information' if source == 'gemini' else 'Local symptom guidance',
+                'medicines': answer.get('medicines', []),
+                'message': answer.get('summary', ''),
+                'urgent_care': answer.get('urgent_care', ''),
+                'disclaimer': answer.get('disclaimer', '')
+            }]
 
     return render_template('symptom_checker.html', results=results, search_query=search_query)
+
+@app.route('/api/health-chat', methods=['POST'])
+@login_required
+def health_chat():
+    if current_user.role != 'store_manager':
+        return jsonify({'error': 'Access denied.'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        answer = health_assistant.answer(payload.get('message', ''))
+    except ValueError as error:
+        return jsonify({'error': str(error)}), 400
+
+    return jsonify({'answer': answer})
 
 @app.route('/support', methods=['GET', 'POST'])
 def support():
@@ -812,4 +861,4 @@ def inject_categories():
     return dict(health_categories=HEALTH_CATEGORIES, medicine_types=MEDICINE_TYPES_NAV)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5001)), debug=True)
