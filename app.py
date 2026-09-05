@@ -37,6 +37,18 @@ def migrate_schema():
         ))
         db.session.commit()
 
+    medicine_columns = {column['name'] for column in inspector.get_columns('medicine')}
+    if 'user_id' not in medicine_columns:
+        db.session.execute(text(
+            "ALTER TABLE medicine ADD COLUMN user_id INTEGER REFERENCES user(id)"
+        ))
+    if 'composition' not in medicine_columns:
+        db.session.execute(text(
+            "ALTER TABLE medicine ADD COLUMN composition TEXT"
+        ))
+    if {'user_id', 'composition'} - medicine_columns:
+        db.session.commit()
+
 with app.app_context():
     db.create_all()
     migrate_schema()
