@@ -115,45 +115,6 @@ python app.py
 
 Do not commit API keys, production secrets, or a production MongoDB URI to the repository.
 
-## MongoDB Troubleshooting
-
-### Local MongoDB
-
-The simplest development setup is the included Docker Compose service:
-
-```bash
-docker compose up -d mongodb
-unset MONGODB_URI
-export MONGODB_DB="medstore"
-python app.py
-```
-
-If the application reports `MongoDB is unavailable`, confirm that Docker is
-running and that the MongoDB container is healthy:
-
-```bash
-docker compose ps
-docker compose logs mongodb
-```
-
-### MongoDB Atlas
-
-Atlas connections require all of the following:
-
-- The cluster is running and not paused.
-- The database user and password are valid.
-- The current development environment IP is allowed in Atlas **Security > Network Access**.
-- The workspace network allows outbound TLS traffic to MongoDB.
-
-An error containing `SSL handshake failed` or `TLSV1_ALERT_INTERNAL_ERROR`
-occurs before the application authenticates. It usually indicates an Atlas
-allowlist, cluster, or workspace network problem rather than a Flask query
-problem. Test with local MongoDB if the Codespaces environment cannot reach
-Atlas.
-
-Never commit MongoDB credentials. Rotate credentials that have been exposed in
-terminal history, chat, logs, or source files.
-
 ## User Flows
 
 ### Customers
@@ -231,22 +192,6 @@ python verify_isolation.py
 python verify_orders.py
 python verify_purchase_flow.py
 ```
-
-## Production Serving
-
-The included `Procfile` starts Gunicorn with:
-
-```bash
-gunicorn app:app
-```
-
-For a local Gunicorn check:
-
-```bash
-gunicorn --bind 0.0.0.0:5001 app:app
-```
-
-The included `vercel.json` configures `app.py` as a Vercel Python function. Configure `MONGODB_URI`, `MONGODB_DB`, `SECRET_KEY`, and any optional Gemini settings in the deployment platform rather than committing them.
 
 ## Project Structure
 
