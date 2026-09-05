@@ -1,6 +1,6 @@
 # MedStore
 
-MedStore is a Flask-based online medicine store with customer shopping, store-manager inventory management, order processing, healthcare browsing, and symptom guidance. It uses Flask-SQLAlchemy for persistence and can run with SQLite locally or PostgreSQL in deployment.
+MedStore is a Flask-based online medicine store with customer shopping, store-manager inventory management, order processing, healthcare browsing, and symptom guidance. It uses MongoDB for document persistence.
 
 > **Medical disclaimer:** The symptom checker provides general information and over-the-counter guidance only. It is not a diagnosis or a substitute for a qualified doctor or pharmacist. Seek urgent medical care for emergency symptoms.
 
@@ -16,16 +16,16 @@ MedStore is a Flask-based online medicine store with customer shopping, store-ma
 - Prescription upload flow for pharmacist review
 - Rule-based symptom guidance with an optional Gemini Health Assistant integration
 - Responsive web interface built with Jinja templates and custom CSS
-- Additive startup migrations for existing SQLite installations
+- MongoDB-backed persistence with integer application IDs for existing route compatibility
 - Deployment configuration for Gunicorn and Vercel
 
 ## Tech Stack
 
 - Python 3
 - Flask
-- Flask-SQLAlchemy and SQLAlchemy
+- PyMongo
 - Flask-Login
-- SQLite by default, PostgreSQL supported
+- MongoDB
 - Jinja2 templates
 - Gunicorn for production-style serving
 - Optional Google Gemini API integration
@@ -34,7 +34,7 @@ MedStore is a Flask-based online medicine store with customer shopping, store-ma
 
 - Python 3.10 or newer
 - `pip`
-- Optional: PostgreSQL database
+- MongoDB 5.0+ or a MongoDB Atlas cluster
 - Optional: Gemini API key for external health-assistant responses
 
 ## Quick Start
@@ -59,15 +59,34 @@ MedStore is a Flask-based online medicine store with customer shopping, store-ma
    pip install -r requirements.txt
    ```
 
-4. Start the development server.
+4. Start MongoDB locally with Docker Compose.
+
+   ```bash
+   docker compose up -d mongodb
+   ```
+
+   Or set `MONGODB_URI` to a reachable MongoDB Atlas connection string.
+
+   For Atlas, make sure the database user exists, the cluster is running, and the
+   current deployment or Codespaces egress IP is included in **Security > Network
+   Access**. Atlas access lists are IP-based; `127.0.0.1` is not the public IP of
+   your development environment.
+
+5. Start the development server.
 
    ```bash
    python app.py
    ```
 
-5. Open [http://localhost:5001](http://localhost:5001).
+6. Open [http://localhost:5001](http://localhost:5001).
 
-On first startup, the application creates the database tables, applies additive schema migrations, creates the default categories, and seeds the default store-manager inventory when needed.
+On first startup, the application connects to MongoDB, creates the required collections as data is written, creates the default categories, and seeds the default store-manager inventory when needed.
+
+To stop the local MongoDB container after development:
+
+```bash
+docker compose down
+```
 
 ## Configuration
 
@@ -75,7 +94,8 @@ The application works locally with the built-in defaults, but production deploym
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | No | SQLAlchemy database URL. Defaults to `sqlite:///medstore.db`. PostgreSQL URLs are supported. |
+| `MONGODB_URI` | No | MongoDB connection string. Defaults to `mongodb://localhost:27017`. |
+| `MONGODB_DB` | No | MongoDB database name. Defaults to `medstore`. |
 | `SECRET_KEY` | Recommended | Secret that should be used to sign Flask sessions. Replace the current development fallback before production deployment. |
 | `GEMINI_API_KEY` | No | Enables Gemini-backed responses in the store-manager health assistant. Without it, the local rules-based assistant is used. |
 | `GEMINI_MODEL` | No | Gemini model name. Defaults to `gemini-3.6-flash`. |
@@ -85,14 +105,54 @@ Example local configuration:
 
 ```bash
 export SECRET_KEY="replace-with-a-long-random-value"
-export DATABASE_URL="sqlite:///medstore.db"
+export MONGODB_URI="mongodb://localhost:27017"
+export MONGODB_DB="medstore"
 # Optional:
 # export GEMINI_API_KEY="your-api-key"
 # export GEMINI_MODEL="gemini-3.6-flash"
 python app.py
 ```
 
-Do not commit API keys, production secrets, or a production database URL to the repository.
+Do not commit API keys, production secrets, or a production MongoDB URI to the repository.
+
+## MongoDB Troubleshooting
+
+### Local MongoDB
+
+The simplest development setup is the included Docker Compose service:
+
+```bash
+docker compose up -d mongodb
+unset MONGODB_URI
+export MONGODB_DB="medstore"
+python app.py
+```
+
+If the application reports `MongoDB is unavailable`, confirm that Docker is
+running and that the MongoDB container is healthy:
+
+```bash
+docker compose ps
+docker compose logs mongodb
+```
+
+### MongoDB Atlas
+
+Atlas connections require all of the following:
+
+- The cluster is running and not paused.
+- The database user and password are valid.
+- The current development environment IP is allowed in Atlas **Security > Network Access**.
+- The workspace network allows outbound TLS traffic to MongoDB.
+
+An error containing `SSL handshake failed` or `TLSV1_ALERT_INTERNAL_ERROR`
+occurs before the application authenticates. It usually indicates an Atlas
+allowlist, cluster, or workspace network problem rather than a Flask query
+problem. Test with local MongoDB if the Codespaces environment cannot reach
+Atlas.
+
+Never commit MongoDB credentials. Rotate credentials that have been exposed in
+terminal history, chat, logs, or source files.
 
 ## User Flows
 
@@ -134,9 +194,9 @@ Responses are informational only and include a medical disclaimer.
 
 ## Database
 
-The default SQLite database is stored at `instance/medstore.db`. SQLAlchemy models are defined in `models.py`.
+The application stores data in the MongoDB database configured by `MONGODB_URI` and `MONGODB_DB`. The MongoDB adapter and document models are defined in `models.py`.
 
-The application runs `db.create_all()` and additive migrations during startup. Existing installations receive missing columns needed by current models, including medicine ownership and composition fields.
+Collections are created automatically by MongoDB when the application first writes data. The application uses the collections `users`, `categories`, `medicines`, `orders`, `order_items`, and `customer_queries`.
 
 For legacy inventory that needs to be assigned to the default manager, review the maintenance scripts before running them:
 
@@ -145,7 +205,7 @@ python assign_legacy_meds.py
 python verify_virat.py
 ```
 
-Do not use destructive maintenance scripts against production data without a backup.
+Do not use destructive maintenance scripts against production data without a MongoDB backup.
 
 ## Testing and Verification
 
@@ -170,7 +230,6 @@ The repository also contains targeted verification scripts for inventory isolati
 python verify_isolation.py
 python verify_orders.py
 python verify_purchase_flow.py
-python verify_config.py
 ```
 
 ## Production Serving
@@ -187,13 +246,13 @@ For a local Gunicorn check:
 gunicorn --bind 0.0.0.0:5001 app:app
 ```
 
-The included `vercel.json` configures `app.py` as a Vercel Python function. Configure `DATABASE_URL`, `SECRET_KEY`, and any optional Gemini settings in the deployment platform rather than committing them.
+The included `vercel.json` configures `app.py` as a Vercel Python function. Configure `MONGODB_URI`, `MONGODB_DB`, `SECRET_KEY`, and any optional Gemini settings in the deployment platform rather than committing them.
 
 ## Project Structure
 
 ```text
 app.py                 Flask application, routes, startup, and seed logic
-models.py              SQLAlchemy models
+models.py              MongoDB document models and query compatibility layer
 health_assistant.py    Gemini integration and local fallback handling
 medicines_data.py      Starter medicine catalog
 requirements.txt       Python dependencies
@@ -201,21 +260,7 @@ Procfile               Gunicorn process definition
 vercel.json            Vercel deployment configuration
 templates/             Jinja HTML templates
 static/css/            Application styles
-instance/              Local SQLite database location
 test_*.py              Automated tests
 verify_*.py            Targeted verification scripts
-migrate_*.py           One-off migration helpers
 ```
 
-## Security Notes
-
-- Replace the development `SECRET_KEY` before deployment.
-- Do not use seeded development credentials in production.
-- Store Gemini and database credentials in environment variables.
-- Review authorization whenever adding a route that reads or mutates inventory or orders.
-- Back up the database before running migration or cleanup scripts.
-- The prescription route currently acknowledges uploads for pharmacist review; it does not persist uploaded files.
-
-## License
-
-No license is currently specified for this repository. Add a license before distributing the project publicly.

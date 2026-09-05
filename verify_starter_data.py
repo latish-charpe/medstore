@@ -51,7 +51,7 @@ def test_flow():
             
     else:
         log("Login Failed or Dashboard not reached.")
-        if "sqlalchemy.exc" in resp.text:
+        if "OperationalError" in resp.text:
              log("DB SCHEMA ERROR DETECTED")
 
 if __name__ == "__main__":

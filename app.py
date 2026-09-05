@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Medicine, Category, Order, OrderItem, CustomerQuery
-from sqlalchemy import inspect, text
 import os
 import hashlib
 import time
@@ -11,47 +10,16 @@ from medicines_data import REAL_MEDICINES_DB
 from health_assistant import HealthAssistant
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # Change for production
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-this')
 
-# Database Configuration
-import os
-
-database_url = os.getenv("DATABASE_URL")
-
-if database_url:
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///medstore.db'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# MongoDB configuration is read by the database adapter in models.py.
+app.config['MONGODB_URI'] = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
+app.config['MONGODB_DB'] = os.getenv('MONGODB_DB', 'medstore')
 
 db.init_app(app)
 
-def migrate_schema():
-    """Apply small additive migrations needed by existing installations."""
-    inspector = inspect(db.engine)
-    user_columns = {column['name'] for column in inspector.get_columns('user')}
-    if 'store_id' not in user_columns:
-        db.session.execute(text(
-            "ALTER TABLE user ADD COLUMN store_id VARCHAR(50) DEFAULT 'medstore_main'"
-        ))
-        db.session.commit()
-
-    medicine_columns = {column['name'] for column in inspector.get_columns('medicine')}
-    if 'user_id' not in medicine_columns:
-        db.session.execute(text(
-            "ALTER TABLE medicine ADD COLUMN user_id INTEGER REFERENCES user(id)"
-        ))
-    if 'composition' not in medicine_columns:
-        db.session.execute(text(
-            "ALTER TABLE medicine ADD COLUMN composition TEXT"
-        ))
-    if {'user_id', 'composition'} - medicine_columns:
-        db.session.commit()
-
 with app.app_context():
     db.create_all()
-    migrate_schema()
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
@@ -179,7 +147,6 @@ def seed_starter_data(user_id):
 
 with app.app_context():
     db.create_all()
-    migrate_schema()
     seed_database()
 
 # --- Routes ---

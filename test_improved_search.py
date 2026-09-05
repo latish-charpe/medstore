@@ -15,9 +15,8 @@ def test_search():
         ]
         
         for search_query, expected_parts in test_cases:
-            from sqlalchemy import or_
             query = Medicine.query.join(Category).filter(
-                or_(
+                db.or_(
                     Medicine.name.ilike(f'%{search_query}%'),
                     Medicine.composition.ilike(f'%{search_query}%'),
                     Medicine.medicine_type.ilike(f'%{search_query}%'),
